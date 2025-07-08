@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Electric Meter</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #111;
+      color: #0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .meter {
+      border: 4px solid #0f0;
+      border-radius: 12px;
+      padding: 20px;
+      width: 420px;
+      background-color: #000;
+    }
+    .title {
+      text-align: center;
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .clock {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+    .display {
+      border: 2px solid #0f0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+    .display div {
+      margin: 5px 0;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    .led {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 5px;
+    }
+    .led.green {
+      background-color: #0f0;
+    }
+    .led.red {
+      background-color: #f00;
+    }
+    .led.yellow {
+      background-color: #ff0;
+    }
+    .barcode {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 0.8em;
+    }
+    .calculator {
+      border-top: 1px solid #0f0;
+      padding-top: 10px;
+    }
+    .calculator label {
+      display: block;
+      margin: 5px 0;
+    }
+    .calculator button {
+      margin-top: 8px;
+      padding: 5px 10px;
+      background: #0f0;
+      border: none;
+      color: #000;
+      cursor: pointer;
+    }
+    .log {
+      border-top: 1px solid #0f0;
+      padding-top: 10px;
+      margin-top: 10px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .log-title {
+      font-size: 0.9em;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .log-entry {
+      font-size: 0.8em;
+    }
+  </style>
+</head>
+<body>
+  <div class="meter">
+    <div class="title">Smart Meter</div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="display">
+      <div>Total Energy: <span id="total-energy">0.00</span> kWh</div>
+      <div>Fridge: 150W (70% duty)</div>
+      <div>AC: 1200W</div>
+      <div>Light: 15W</div>
+    </div>
+    <div class="status">
+      <div>Network <span class="led green"></span></div>
+      <div>Battery <span class="led yellow"></span></div>
+      <div>Error <span class="led red"></span></div>
+    </div>
+    <div class="barcode">
+      Serial: SMTR-987654321<br>
+      ▒▒▒▒▌▌▌▒▒▒▌▌▌▒▒▒▌▌▌
+    </div>
+
+    <div class="calculator">
+      <div class="log-title">Appliances</div>
+      <label><input type="checkbox" id="ac"> AC ON</label>
+      <label><input type="checkbox" id="light"> Light ON</label>
+      <button onclick="resetMeter()">Reset Usage</button>
+      <button onclick="exportLog()">Export Log</button>
+    </div>
+
+    <div class="log">
+      <div class="log-title">Usage Log</div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    let totalEnergy = 0.00;
+    let usageLog = [];
+
+    // Load saved data from localStorage
+    if (localStorage.getItem('totalEnergy')) {
+      totalEnergy = parseFloat(localStorage.getItem('totalEnergy'));
+    }
+    if (localStorage.getItem('usageLog')) {
+      usageLog = JSON.parse(localStorage.getItem('usageLog'));
+    }
+
+    document.getElementById('total-energy').textContent = totalEnergy.toFixed(2);
+    renderLog();
+
+    // Update real-time clock every second (with date)
+    setInterval(() => {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString();
+      const timeStr = now.toLocaleTimeString();
+      document.getElementById('clock').textContent = `${dateStr} ${timeStr}`;
+    }, 1000);
+
+    // Record usage every minute
+    setInterval(() => {
+      recordUsage();
+    }, 60 * 1000);
+
+    function recordUsage() {
+      const fridgePower = 150; // W
+      const fridgeDuty = 0.7;
+      const acPower = 1200;    // W
+      const lightPower = 15;   // W
+
+      const acOn = document.getElementById('ac').checked ? 1 : 0;
+      const lightOn = document.getElementById('light').checked ? 1 : 0;
+
+      const totalPower = (fridgePower * fridgeDuty) + (acPower * acOn) + (lightPower * lightOn);
+
+      const energyUsed = (totalPower / 1000) * (1 / 60);
+
+      totalEnergy += energyUsed;
+      document.getElementById('total-energy').textContent = totalEnergy.toFixed(4);
+
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);  // yyyy-MM-dd
+      const timeStr = now.toTimeString().slice(0, 8);  // HH:mm:ss
+      const entry = `${dateStr} ${timeStr} - +${energyUsed.toFixed(4)} kWh`;
+      usageLog.unshift(entry);
+
+      localStorage.setItem('totalEnergy', totalEnergy.toFixed(4));
+      localStorage.setItem('usageLog', JSON.stringify(usageLog));
+
+      renderLog();
+
+      // ✅ Send to .NET Core API
+      const payload = {
+        readingDate: dateStr,
+        readingTime: timeStr,
+        energyUsed: energyUsed.toFixed(4)
+      };
+
+      fetch('http://localhost:5083/api/meterreading', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (res.ok) {
+          console.log("Reading sent to API:", payload);
+        } else {
+          console.error("API returned error:", res.status);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to send reading:", err);
+      });
+    }
+
+    function renderLog() {
+      const logDiv = document.getElementById('log');
+      logDiv.innerHTML = '';
+      usageLog.slice(0, 20).forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.textContent = entry;
+        logDiv.appendChild(div);
+      });
+    }
+
+    function resetMeter() {
+      if (confirm("Are you sure you want to reset all usage data?")) {
+        totalEnergy = 0.00;
+        usageLog = [];
+        localStorage.removeItem('totalEnergy');
+        localStorage.removeItem('usageLog');
+        document.getElementById('total-energy').textContent = totalEnergy.toFixed(2);
+        renderLog();
+      }
+    }
+
+    function exportLog() {
+      const blob = new Blob([usageLog.reverse().join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'smart_meter_log.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

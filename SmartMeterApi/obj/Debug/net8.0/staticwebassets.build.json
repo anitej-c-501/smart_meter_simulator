@@ -1,0 +1,39 @@
+{
+  "Version": 1,
+  "Hash": "zOdMhk1RLmY4/d6yb7vFo4vS8yEJyahnHsEB58n9KOA=",
+  "Source": "SmartMeterApi",
+  "BasePath": "_content/SmartMeterApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "SmartMeterApi\\wwwroot",
+      "Source": "SmartMeterApi",
+      "ContentRoot": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\",
+      "BasePath": "_content/SmartMeterApi",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\index.html",
+      "SourceId": "SmartMeterApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\",
+      "BasePath": "_content/SmartMeterApi",
+      "RelativePath": "index.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\index.html"
+    }
+  ]
+}
