@@ -1,6 +1,10 @@
 {
   "Files": [
     {
+      "Id": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\configure_house.html",
+      "PackagePath": "staticwebassets\\configure_house.html"
+    },
+    {
       "Id": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
     },

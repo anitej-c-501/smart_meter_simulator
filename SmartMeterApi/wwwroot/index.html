@@ -106,9 +106,9 @@
     <div class="clock" id="clock">--:--:--</div>
     <div class="display">
       <div>Total Energy: <span id="total-energy">0.00</span> kWh</div>
-      <div>Fridge: 150W (70% duty)</div>
-      <div>AC: 1200W</div>
-      <div>Light: 15W</div>
+      <div id="fridge-info"></div>
+      <div id="ac-info"></div>
+      <div id="light-info"></div>
     </div>
     <div class="status">
       <div>Network <span class="led green"></span></div>
@@ -122,8 +122,7 @@
 
     <div class="calculator">
       <div class="log-title">Appliances</div>
-      <label><input type="checkbox" id="ac"> AC ON</label>
-      <label><input type="checkbox" id="light"> Light ON</label>
+      <div id="appliance-controls"></div>
       <button onclick="resetMeter()">Reset Usage</button>
       <button onclick="exportLog()">Export Log</button>
     </div>
@@ -138,7 +137,6 @@
     let totalEnergy = 0.00;
     let usageLog = [];
 
-    // Load saved data from localStorage
     if (localStorage.getItem('totalEnergy')) {
       totalEnergy = parseFloat(localStorage.getItem('totalEnergy'));
     }
@@ -149,7 +147,29 @@
     document.getElementById('total-energy').textContent = totalEnergy.toFixed(2);
     renderLog();
 
-    // Update real-time clock every second (with date)
+    const numFridges = parseInt(localStorage.getItem('numFridges') || '1');
+    const numACs = parseInt(localStorage.getItem('numACs') || '1');
+    const numLights = parseInt(localStorage.getItem('numLights') || '1');
+
+    document.getElementById('fridge-info').textContent = `Fridge: ${numFridges} x 150W (70% duty)`;
+    document.getElementById('ac-info').textContent = `ACs: ${numACs} x 1200W`;
+    document.getElementById('light-info').textContent = `Lights: ${numLights} x 15W`;
+    
+    const applianceControls = document.getElementById('appliance-controls');
+
+    for (let i = 0; i < numACs; i++) {
+      const label = document.createElement('label');
+      label.innerHTML = `<input type="checkbox" id="ac-${i}"> AC ${i + 1} ON`;
+      applianceControls.appendChild(label);
+    }
+
+    for (let i = 0; i < numLights; i++) {
+      const label = document.createElement('label');
+      label.innerHTML = `<input type="checkbox" id="light-${i}"> Light ${i + 1} ON`;
+      applianceControls.appendChild(label);
+    }
+
+    // Clock
     setInterval(() => {
       const now = new Date();
       const dateStr = now.toLocaleDateString();
@@ -157,30 +177,39 @@
       document.getElementById('clock').textContent = `${dateStr} ${timeStr}`;
     }, 1000);
 
-    // Record usage every minute
     setInterval(() => {
       recordUsage();
     }, 60 * 1000);
 
     function recordUsage() {
-      const fridgePower = 150; // W
+      const fridgePower = 150;
       const fridgeDuty = 0.7;
-      const acPower = 1200;    // W
-      const lightPower = 15;   // W
+      const acPower = 1200;
+      const lightPower = 15;
 
-      const acOn = document.getElementById('ac').checked ? 1 : 0;
-      const lightOn = document.getElementById('light').checked ? 1 : 0;
+      let acTotal = 0;
+      for (let i = 0; i < numACs; i++) {
+        if (document.getElementById(`ac-${i}`).checked) {
+          acTotal += acPower;
+        }
+      }
 
-      const totalPower = (fridgePower * fridgeDuty) + (acPower * acOn) + (lightPower * lightOn);
+      let lightTotal = 0;
+      for (let i = 0; i < numLights; i++) {
+        if (document.getElementById(`light-${i}`).checked) {
+          lightTotal += lightPower;
+        }
+      }
 
+      const totalPower = (fridgePower * fridgeDuty * numFridges) + acTotal + lightTotal;
       const energyUsed = (totalPower / 1000) * (1 / 60);
 
       totalEnergy += energyUsed;
       document.getElementById('total-energy').textContent = totalEnergy.toFixed(4);
 
       const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10);  // yyyy-MM-dd
-      const timeStr = now.toTimeString().slice(0, 8);  // HH:mm:ss
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 8);
       const entry = `${dateStr} ${timeStr} - +${energyUsed.toFixed(4)} kWh`;
       usageLog.unshift(entry);
 
@@ -189,7 +218,6 @@
 
       renderLog();
 
-      // ✅ Send to .NET Core API
       const payload = {
         readingDate: dateStr,
         readingTime: timeStr,
@@ -205,12 +233,10 @@
         if (res.ok) {
           console.log("Reading sent to API:", payload);
         } else {
-          console.error("API returned error:", res.status);
+          console.error("API error:", res.status);
         }
       })
-      .catch(err => {
-        console.error("Failed to send reading:", err);
-      });
+      .catch(err => console.error("API request failed:", err));
     }
 
     function renderLog() {

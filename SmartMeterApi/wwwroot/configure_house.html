@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Configure House</title>
+</head>
+<body>
+  <h1>Configure Your Smart House</h1>
+
+  <label>Number of Fridges:
+    <input type="number" id="num-fridges" min="0" value="1">
+  </label><br>
+
+  <label>Number of ACs:
+    <input type="number" id="num-acs" min="0" value="1">
+  </label><br>
+
+  <label>Number of Lights:
+    <input type="number" id="num-lights" min="0" value="1">
+  </label><br>
+
+  <button onclick="createHouse()">Create House</button>
+
+  <script>
+    function createHouse() {
+      const fridges = document.getElementById('num-fridges').value;
+      const acs = document.getElementById('num-acs').value;
+      const lights = document.getElementById('num-lights').value;
+
+      localStorage.setItem('numFridges', fridges);
+      localStorage.setItem('numACs', acs);
+      localStorage.setItem('numLights', lights);
+
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
