@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>House Configuration</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin: 10px 0;
+    }
+    input {
+      width: 50px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #0f0;
+      border: none;
+      color: #000;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="title">Configure House</h1>
+  <label>Number of Fridges: <input type="number" id="fridges" min="0" value="1"></label>
+  <label>Number of ACs: <input type="number" id="acs" min="0" value="1"></label>
+  <label>Number of Lights: <input type="number" id="lights" min="0" value="1"></label>
+  <button onclick="saveConfig()">Save & Open Meter</button>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const houseId = params.get('house');
+    document.getElementById('title').textContent = `Configure House ${houseId}`;
+
+    const configKey = `house_${houseId}_config`;
+
+    if (localStorage.getItem(configKey)) {
+      const config = JSON.parse(localStorage.getItem(configKey));
+      document.getElementById('fridges').value = config.fridges;
+      document.getElementById('acs').value = config.acs;
+      document.getElementById('lights').value = config.lights;
+    }
+
+    function saveConfig() {
+      const fridges = parseInt(document.getElementById('fridges').value);
+      const acs = parseInt(document.getElementById('acs').value);
+      const lights = parseInt(document.getElementById('lights').value);
+      const config = { fridges, acs, lights };
+      localStorage.setItem(configKey, JSON.stringify(config));
+      window.location.href = `smart_meter_ui.html?house=${houseId}`;
+    }
+  </script>
+</body>
+</html>

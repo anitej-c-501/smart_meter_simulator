@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "gOGjqxJDonjYqYzENAWm9Iq26gju+n6qFNbEe0+RR/A=",
+  "Hash": "x9ktw8PV4Y+sqLM3e8qGQaPgsce0TTtqTjHfOKvGnnY=",
   "Source": "SmartMeterApi",
   "BasePath": "_content/SmartMeterApi",
   "Mode": "Default",
@@ -16,6 +16,25 @@
     }
   ],
   "Assets": [
+    {
+      "Identity": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\configure_house_ui.html",
+      "SourceId": "SmartMeterApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\",
+      "BasePath": "_content/SmartMeterApi",
+      "RelativePath": "configure_house_ui.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\configure_house_ui.html"
+    },
     {
       "Identity": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\configure_house.html",
       "SourceId": "SmartMeterApi",
@@ -36,12 +55,12 @@
       "OriginalItemSpec": "wwwroot\\configure_house.html"
     },
     {
-      "Identity": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\index.html",
+      "Identity": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\smart_meter_ui.html",
       "SourceId": "SmartMeterApi",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\",
       "BasePath": "_content/SmartMeterApi",
-      "RelativePath": "index.html",
+      "RelativePath": "smart_meter_ui.html",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -52,7 +71,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\index.html"
+      "OriginalItemSpec": "wwwroot\\smart_meter_ui.html"
     }
   ]
 }

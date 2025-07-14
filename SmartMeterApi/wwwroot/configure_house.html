@@ -2,36 +2,113 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Configure House</title>
+  <title>Configure Houses</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    #houses {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .house {
+      background: #000;
+      border: 2px solid #0f0;
+      width: 150px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      font-size: 1.2em;
+      text-align: center;
+    }
+    .delete {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #f00;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #0f0;
+      border: none;
+      color: #000;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>Configure Your Smart House</h1>
-
-  <label>Number of Fridges:
-    <input type="number" id="num-fridges" min="0" value="1">
-  </label><br>
-
-  <label>Number of ACs:
-    <input type="number" id="num-acs" min="0" value="1">
-  </label><br>
-
-  <label>Number of Lights:
-    <input type="number" id="num-lights" min="0" value="1">
-  </label><br>
-
-  <button onclick="createHouse()">Create House</button>
+  <h1>Configure Houses</h1>
+  <div id="houses"></div>
+  <button onclick="addHouse()">Add House</button>
 
   <script>
-    function createHouse() {
-      const fridges = document.getElementById('num-fridges').value;
-      const acs = document.getElementById('num-acs').value;
-      const lights = document.getElementById('num-lights').value;
+    let houses = [];
 
-      localStorage.setItem('numFridges', fridges);
-      localStorage.setItem('numACs', acs);
-      localStorage.setItem('numLights', lights);
+    if (localStorage.getItem('houses')) {
+      houses = JSON.parse(localStorage.getItem('houses'));
+    }
 
-      window.location.href = 'index.html';
+    renderHouses();
+
+    function addHouse() {
+      let i = 1;
+      while (houses.includes(i)) {
+        i++;
+      }
+      houses.push(i);
+      save();
+      renderHouses();
+    }
+
+    function deleteHouse(id) {
+      houses = houses.filter(h => h !== id);
+      localStorage.removeItem(`house_${id}_config`);
+      save();
+      renderHouses();
+    }
+
+    function save() {
+      localStorage.setItem('houses', JSON.stringify(houses));
+    }
+
+    function renderHouses() {
+      const container = document.getElementById('houses');
+      container.innerHTML = '';
+      houses.sort((a, b) => a - b).forEach(houseId => {
+        const div = document.createElement('div');
+        div.className = 'house';
+        div.innerHTML = `House ${houseId}<br><small>(Click to configure)</small>`;
+        div.onclick = () => {
+          window.location.href = `configure_house_ui.html?house=${houseId}`;
+        };
+        const del = document.createElement('button');
+        del.className = 'delete';
+        del.textContent = 'X';
+        del.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`Delete House ${houseId}?`)) {
+            deleteHouse(houseId);
+          }
+        };
+        div.appendChild(del);
+        container.appendChild(div);
+      });
     }
   </script>
 </body>

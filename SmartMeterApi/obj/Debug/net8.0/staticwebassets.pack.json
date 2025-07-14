@@ -5,8 +5,12 @@
       "PackagePath": "staticwebassets\\configure_house.html"
     },
     {
-      "Id": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\index.html",
-      "PackagePath": "staticwebassets\\index.html"
+      "Id": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\configure_house_ui.html",
+      "PackagePath": "staticwebassets\\configure_house_ui.html"
+    },
+    {
+      "Id": "C:\\Users\\anite\\OneDrive\\Documents\\esyasoft\\smart_meter_2\\SmartMeterApi\\wwwroot\\smart_meter_ui.html",
+      "PackagePath": "staticwebassets\\smart_meter_ui.html"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.SmartMeterApi.Microsoft.AspNetCore.StaticWebAssets.props",
