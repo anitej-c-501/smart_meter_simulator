@@ -24,8 +24,6 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
-
 app.Use(async (context, next) =>
 {
     if (context.Request.Path == "/")
@@ -35,6 +33,9 @@ app.Use(async (context, next) =>
     }
     await next();
 });
+
+app.UseStaticFiles();
+
 
 app.UseAuthorization();
 app.MapControllers();
