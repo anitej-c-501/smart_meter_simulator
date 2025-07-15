@@ -53,15 +53,9 @@
       display: inline-block;
       margin-left: 5px;
     }
-    .led.green {
-      background-color: #0f0;
-    }
-    .led.red {
-      background-color: #f00;
-    }
-    .led.yellow {
-      background-color: #ff0;
-    }
+    .led.green { background-color: #0f0; }
+    .led.red { background-color: #f00; }
+    .led.yellow { background-color: #ff0; }
     .barcode {
       text-align: center;
       margin-bottom: 10px;
@@ -102,14 +96,9 @@
 </head>
 <body>
   <div class="meter">
-    <div class="title">Smart Meter</div>
+    <div class="title" id="meter-title">Smart Meter</div>
     <div class="clock" id="clock">--:--:--</div>
-    <div class="display">
-      <div>Total Energy: <span id="total-energy">0.00</span> kWh</div>
-      <div id="fridge-info"></div>
-      <div id="ac-info"></div>
-      <div id="light-info"></div>
-    </div>
+    <div class="display" id="appliance-summary"></div>
     <div class="status">
       <div>Network <span class="led green"></span></div>
       <div>Battery <span class="led yellow"></span></div>
@@ -134,109 +123,107 @@
   </div>
 
   <script>
-    let totalEnergy = 0.00;
-    let usageLog = [];
-
-    if (localStorage.getItem('totalEnergy')) {
-      totalEnergy = parseFloat(localStorage.getItem('totalEnergy'));
+    const params = new URLSearchParams(window.location.search);
+    const houseId = params.get('house');
+    if (!houseId) {
+      alert("No house ID provided!");
+      window.location.href = "configure_house_ui.html";
     }
-    if (localStorage.getItem('usageLog')) {
-      usageLog = JSON.parse(localStorage.getItem('usageLog'));
+    document.getElementById('meter-title').textContent = `Smart Meter - House ${houseId}`;
+
+    const usageKey = `house_${houseId}_usage`;
+    const logKey = `house_${houseId}_log`;
+    const configKey = `house_${houseId}_config`;
+
+    const config = JSON.parse(localStorage.getItem(configKey));
+    if (!config) {
+      alert(`No config found for House ${houseId}`);
+      window.location.href = `configure_house_ui.html?house=${houseId}`;
     }
 
-    document.getElementById('total-energy').textContent = totalEnergy.toFixed(2);
+    const appliancePower = {
+      'Fridge': { watts: 150, duty: 0.7 },
+      'AC': { watts: 1200 },
+      'Light': { watts: 15 },
+      'WashingMachine': { watts: 500 },
+      'TV': { watts: 100 },
+      'Heater': { watts: 1500 }
+    };
+
+    const summary = document.getElementById('appliance-summary');
+    const controls = document.getElementById('appliance-controls');
+    summary.innerHTML = `<div>Total Energy: <span id="total-energy">0.00</span> kWh</div>`;
+
+    const appliances = Array.isArray(config) ? config : Object.entries(config).map(([name, count]) => ({ name, count }));
+
+    appliances.forEach(({ name, count }) => {
+      if (appliancePower[name]) {
+        let info = `${name}: ${count} x ${appliancePower[name].watts}W`;
+        if (name === 'Fridge') info += ' (70% duty)';
+        summary.innerHTML += `<div>${info}</div>`;
+
+        if (name === 'AC' || name === 'Light') {
+          for (let i = 0; i < count; i++) {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" id="${name}-${i}"> ${name} ${i + 1} ON`;
+            controls.appendChild(label);
+          }
+        }
+      }
+    });
+
+    let totalEnergy = parseFloat(localStorage.getItem(usageKey) || '0.00');
+    let usageLog = JSON.parse(localStorage.getItem(logKey) || '[]');
+    document.getElementById('total-energy').textContent = totalEnergy.toFixed(4);
     renderLog();
 
-    const numFridges = parseInt(localStorage.getItem('numFridges') || '1');
-    const numACs = parseInt(localStorage.getItem('numACs') || '1');
-    const numLights = parseInt(localStorage.getItem('numLights') || '1');
-
-    document.getElementById('fridge-info').textContent = `Fridge: ${numFridges} x 150W (70% duty)`;
-    document.getElementById('ac-info').textContent = `ACs: ${numACs} x 1200W`;
-    document.getElementById('light-info').textContent = `Lights: ${numLights} x 15W`;
-    
-    const applianceControls = document.getElementById('appliance-controls');
-
-    for (let i = 0; i < numACs; i++) {
-      const label = document.createElement('label');
-      label.innerHTML = `<input type="checkbox" id="ac-${i}"> AC ${i + 1} ON`;
-      applianceControls.appendChild(label);
-    }
-
-    for (let i = 0; i < numLights; i++) {
-      const label = document.createElement('label');
-      label.innerHTML = `<input type="checkbox" id="light-${i}"> Light ${i + 1} ON`;
-      applianceControls.appendChild(label);
-    }
-
-    // Clock
     setInterval(() => {
       const now = new Date();
-      const dateStr = now.toLocaleDateString();
-      const timeStr = now.toLocaleTimeString();
-      document.getElementById('clock').textContent = `${dateStr} ${timeStr}`;
+      document.getElementById('clock').textContent = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
     }, 1000);
-
-    setInterval(() => {
-      recordUsage();
-    }, 60 * 1000);
+    setInterval(recordUsage, 60 * 1000);
 
     function recordUsage() {
-      const fridgePower = 150;
-      const fridgeDuty = 0.7;
-      const acPower = 1200;
-      const lightPower = 15;
+      let totalPower = 0;
 
-      let acTotal = 0;
-      for (let i = 0; i < numACs; i++) {
-        if (document.getElementById(`ac-${i}`).checked) {
-          acTotal += acPower;
+      appliances.forEach(({ name, count }) => {
+        const power = appliancePower[name].watts;
+        if (name === 'Fridge') {
+          totalPower += power * appliancePower[name].duty * count;
+        } else if (name === 'AC' || name === 'Light') {
+          for (let i = 0; i < count; i++) {
+            if (document.getElementById(`${name}-${i}`).checked) {
+              totalPower += power;
+            }
+          }
+        } else {
+          totalPower += power * count;
         }
-      }
+      });
 
-      let lightTotal = 0;
-      for (let i = 0; i < numLights; i++) {
-        if (document.getElementById(`light-${i}`).checked) {
-          lightTotal += lightPower;
-        }
-      }
-
-      const totalPower = (fridgePower * fridgeDuty * numFridges) + acTotal + lightTotal;
       const energyUsed = (totalPower / 1000) * (1 / 60);
-
       totalEnergy += energyUsed;
       document.getElementById('total-energy').textContent = totalEnergy.toFixed(4);
 
       const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10);
-      const timeStr = now.toTimeString().slice(0, 8);
-      const entry = `${dateStr} ${timeStr} - +${energyUsed.toFixed(4)} kWh`;
+      const entry = `${now.toISOString().slice(0, 10)} ${now.toTimeString().slice(0, 8)} - +${energyUsed.toFixed(4)} kWh`;
       usageLog.unshift(entry);
 
-      localStorage.setItem('totalEnergy', totalEnergy.toFixed(4));
-      localStorage.setItem('usageLog', JSON.stringify(usageLog));
-
+      localStorage.setItem(usageKey, totalEnergy.toFixed(4));
+      localStorage.setItem(logKey, JSON.stringify(usageLog));
       renderLog();
-
-      const payload = {
-        readingDate: dateStr,
-        readingTime: timeStr,
-        energyUsed: energyUsed.toFixed(4)
-      };
 
       fetch('http://localhost:5083/api/meterreading', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          readingDate: now.toISOString().slice(0, 10),
+          readingTime: now.toTimeString().slice(0, 8),
+          energyUsed: energyUsed.toFixed(4)
+        })
       })
-      .then(res => {
-        if (res.ok) {
-          console.log("Reading sent to API:", payload);
-        } else {
-          console.error("API error:", res.status);
-        }
-      })
-      .catch(err => console.error("API request failed:", err));
+      .then(res => res.ok ? console.log("Reading sent") : console.error("API error", res.status))
+      .catch(err => console.error("API error", err));
     }
 
     function renderLog() {
@@ -251,12 +238,12 @@
     }
 
     function resetMeter() {
-      if (confirm("Are you sure you want to reset all usage data?")) {
-        totalEnergy = 0.00;
+      if (confirm("Reset all usage data?")) {
+        totalEnergy = 0;
         usageLog = [];
-        localStorage.removeItem('totalEnergy');
-        localStorage.removeItem('usageLog');
-        document.getElementById('total-energy').textContent = totalEnergy.toFixed(2);
+        localStorage.removeItem(usageKey);
+        localStorage.removeItem(logKey);
+        document.getElementById('total-energy').textContent = '0.00';
         renderLog();
       }
     }
@@ -266,7 +253,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'smart_meter_log.txt';
+      a.download = `smart_meter_house_${houseId}_log.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
