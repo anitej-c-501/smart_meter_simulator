@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Appliance Switch UI</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #111;
+      color: #0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+    }
+    .appliance {
+      margin: 10px 0;
+    }
+    .switch {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Appliance Switch Panel</h2>
+
+  <div class="appliance">
+    <label>AC
+      <input type="checkbox" class="switch" id="ac">
+    </label>
+  </div>
+  <div class="appliance">
+    <label>Light
+      <input type="checkbox" class="switch" id="light">
+    </label>
+  </div>
+  <div class="appliance">
+    <label>Washing Machine
+      <input type="checkbox" class="switch" id="washing_machine">
+    </label>
+  </div>
+  <div class="appliance">
+    <label>TV
+      <input type="checkbox" class="switch" id="tv">
+    </label>
+  </div>
+  <div class="appliance">
+    <label>Heater
+      <input type="checkbox" class="switch" id="heater">
+    </label>
+  </div>
+
+  <script>
+    const appliances = ['ac', 'light', 'washing_machine', 'tv', 'heater'];
+
+    // Load saved states
+    window.onload = () => {
+      appliances.forEach(appliance => {
+        const saved = localStorage.getItem(appliance);
+        const checkbox = document.getElementById(appliance);
+        if (saved === 'on') {
+          checkbox.checked = true;
+        }
+      });
+    };
+
+    // Save state on change
+    appliances.forEach(appliance => {
+      const checkbox = document.getElementById(appliance);
+      checkbox.addEventListener('change', () => {
+        localStorage.setItem(appliance, checkbox.checked ? 'on' : 'off');
+      });
+    });
+  </script>
+</body>
+</html>
+
