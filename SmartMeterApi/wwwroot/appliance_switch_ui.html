@@ -23,56 +23,64 @@
   </style>
 </head>
 <body>
-  <h2>Appliance Switch Panel</h2>
-
-  <div class="appliance">
-    <label>AC
-      <input type="checkbox" class="switch" id="ac">
-    </label>
-  </div>
-  <div class="appliance">
-    <label>Light
-      <input type="checkbox" class="switch" id="light">
-    </label>
-  </div>
-  <div class="appliance">
-    <label>Washing Machine
-      <input type="checkbox" class="switch" id="washing_machine">
-    </label>
-  </div>
-  <div class="appliance">
-    <label>TV
-      <input type="checkbox" class="switch" id="tv">
-    </label>
-  </div>
-  <div class="appliance">
-    <label>Heater
-      <input type="checkbox" class="switch" id="heater">
-    </label>
-  </div>
+  <h2 id="title">Appliance Switch Panel</h2>
+  <div id="appliance-container"></div>
 
   <script>
-    const appliances = ['ac', 'light', 'washing_machine', 'tv', 'heater'];
+    const params = new URLSearchParams(window.location.search);
+    const houseId = params.get('house');
 
-    // Load saved states
-    window.onload = () => {
-      appliances.forEach(appliance => {
-        const saved = localStorage.getItem(appliance);
-        const checkbox = document.getElementById(appliance);
-        if (saved === 'on') {
+    if (!houseId) {
+      alert("No house ID provided in URL!");
+      throw new Error("No house ID");
+    }
+
+    document.getElementById('title').textContent = `House ${houseId} - Appliance Switch Panel`;
+
+    const configKey = `house_${houseId}_config`;
+    const stateKey = `house_${houseId}_switch_state`;
+
+    const config = JSON.parse(localStorage.getItem(configKey));
+    if (!config) {
+      alert("No configuration found. Redirecting...");
+      window.location.href = `configure_house_ui.html?house=${houseId}`;
+    }
+
+    const savedStates = JSON.parse(localStorage.getItem(stateKey) || '{}');
+    const container = document.getElementById('appliance-container');
+
+    // Render switches based on config
+    for (const [type, count] of Object.entries(config)) {
+      for (let i = 1; i <= count; i++) {
+        const id = `${type}${i}`;
+
+        const div = document.createElement('div');
+        div.className = 'appliance';
+
+        const label = document.createElement('label');
+        label.textContent = `${type.replace(/([A-Z])/g, ' $1')} ${i}`;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'switch';
+        checkbox.id = id;
+
+        // Restore saved state
+        if (savedStates[id] === 'on') {
           checkbox.checked = true;
         }
-      });
-    };
 
-    // Save state on change
-    appliances.forEach(appliance => {
-      const checkbox = document.getElementById(appliance);
-      checkbox.addEventListener('change', () => {
-        localStorage.setItem(appliance, checkbox.checked ? 'on' : 'off');
-      });
-    });
+        // Save state on change
+        checkbox.addEventListener('change', () => {
+          savedStates[id] = checkbox.checked ? 'on' : 'off';
+          localStorage.setItem(stateKey, JSON.stringify(savedStates));
+        });
+
+        label.appendChild(checkbox);
+        div.appendChild(label);
+        container.appendChild(div);
+      }
+    }
   </script>
 </body>
 </html>
-

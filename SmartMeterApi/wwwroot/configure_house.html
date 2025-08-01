@@ -115,6 +115,20 @@
           window.location.href = `configure_house_ui.html?house=${houseId}`;
         };
 
+        const switchBtn = document.createElement('button');
+        switchBtn.className = 'small-btn';
+        switchBtn.textContent = '🔌';
+        switchBtn.title = 'Go to Appliance Configuration';
+        switchBtn.onclick = (e) => {
+          e.stopPropagation();
+          const configKey = `house_${houseId}_config`;
+          if (localStorage.getItem(configKey)) {
+            window.location.href = `appliance_switch_ui.html?house=${houseId}`;
+          } else {
+            window.location.href = `configure_house_ui.html?house=${houseId}`;
+          }
+        };
+
         const meterBtn = document.createElement('button');
         meterBtn.className = 'small-btn';
         meterBtn.textContent = '⚡';
@@ -141,6 +155,7 @@
 
         div.appendChild(configBtn);
         div.appendChild(meterBtn);
+        div.appendChild(switchBtn);
         div.appendChild(delBtn);
 
         container.appendChild(div);

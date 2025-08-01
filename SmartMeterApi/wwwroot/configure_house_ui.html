@@ -90,6 +90,9 @@
     <div class="appliance-list" id="appliance-list"></div>
 
     <button onclick="saveConfig()">Save Configuration</button>
+    <button onclick="goToSwitch()">Go to Appliance Switch Panel</button>
+    <button onclick="goToSmartMeter()">Go to Smart Meter</button>
+
   </div>
 
   <script>
@@ -150,6 +153,15 @@
       }
       localStorage.setItem(configKey, JSON.stringify(appliances));
       alert(`Configuration saved for House ${houseId}!`);
+    }
+
+    function goToSwitch() {
+      saveConfig();
+      window.location.href = `appliance_switch_ui.html?house=${houseId}`;
+    }
+
+    function goToSmartMeter() {
+      saveConfig();
       window.location.href = `smart_meter_ui.html?house=${houseId}`;
     }
   </script>

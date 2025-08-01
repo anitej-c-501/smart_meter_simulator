@@ -103,14 +103,31 @@
     const onAppliances = document.getElementById("onAppliances");
     const logEntries = document.getElementById("logEntries");
 
-    const APPLIANCES = {
-      "AC1": 1.5,
-      "AC2": 1.5,
-      "Heater1": 2.0,
-      "Heater2": 2.0,
+    // Base power consumption (kW) per appliance type
+    const BASE_POWER = {
+      "AC": 1.5,
+      "Heater": 2.0,
       "WashingMachine": 0.7,
-      "TV": 0.3
+      "TV": 0.3,
+      "Fridge": 0.2,
+      "Light": 0.1
     };
+
+    // Get house ID from query string
+    const params = new URLSearchParams(window.location.search);
+    const houseId = params.get("house");
+    if (!houseId) {
+      alert("No house ID provided.");
+      throw new Error("Missing house ID");
+    }
+
+    const configKey = `house_${houseId}_config`;
+    const switchStateKey = `house_${houseId}_switch_state`;
+
+    const config = JSON.parse(localStorage.getItem(configKey) || "{}");
+    const state = JSON.parse(localStorage.getItem(switchStateKey) || "{}");
+
+    let totalEnergy = parseFloat(localStorage.getItem(`house_${houseId}_energy`) || "0");
 
     function updateClock() {
       const now = new Date();
@@ -118,16 +135,19 @@
     }
 
     function calculateEnergyUsage() {
-      let totalEnergy = parseFloat(localStorage.getItem("energy") || "0");
-      const active = [];
-      for (const appliance in APPLIANCES) {
-        const status = localStorage.getItem(appliance);
-        if (status === "on") {
-          totalEnergy += APPLIANCES[appliance] * (1 / 3600); // per second
-          active.push(appliance);
+      const state = JSON.parse(localStorage.getItem(switchStateKey) || "{}");
+      let active = [];
+      for (const [applianceType, count] of Object.entries(config)) {
+        for (let i = 1; i <= count; i++) {
+          const id = `${applianceType}${i}`;
+          if (state[id] === "on") {
+            const power = BASE_POWER[applianceType] || 0.5; // fallback if unknown
+            totalEnergy += power * (1 / 3600); // kWh per second
+            active.push(id);
+          }
         }
       }
-      localStorage.setItem("energy", totalEnergy.toFixed(4));
+      localStorage.setItem(`house_${houseId}_energy`, totalEnergy.toFixed(4));
       return { totalEnergy, active };
     }
 
@@ -138,14 +158,19 @@
 
       const timestamp = new Date().toLocaleTimeString();
       const entry = `[${timestamp}] ON: ${active.join(", ") || "None"}`;
-      logEntries.innerHTML = `<div class="log-entry">${entry}</div>` + logEntries.innerHTML;
+      const newLog = document.createElement("div");
+      newLog.className = "log-entry";
+      newLog.textContent = entry;
+      logEntries.prepend(newLog);
     }
 
     updateClock();
+    updateUI();
     setInterval(() => {
       updateClock();
       updateUI();
     }, 1000);
   </script>
+
 </body>
 </html>
